@@ -1,36 +1,39 @@
+cat << 'EOF' > /opt/clam-av/clamav_docker_setup.sh
 #!/bin/bash
 set -e
 
 ### CONFIG ###
-SCAN_TIME="30 3 * * *"        # Daily 03:30
+SCAN_TIME="30 3 * * *"
 SCRIPT_PATH="/usr/local/bin/clamav_docker_scan.sh"
 CRON_FILE="/etc/cron.d/clamav_scan"
 LOGDIR="/var/log/clamav"
 
 echo "=== ClamAV Docker Scan Setup ==="
 
-# 1. Check Docker
-if ! command -v docker &>/dev/null; then
-  echo "ERROR: Docker not found. Please install Docker first."
+# Check Docker
+if ! command -v docker >/dev/null 2>&1; then
+  echo "ERROR: Docker not found"
   exit 1
 fi
 
-# 2. Create log directory
-echo "[1/4] Preparing log directory..."
+# Prepare log dir
 mkdir -p "$LOGDIR"
 chmod 750 "$LOGDIR"
 
-# 3. Create scan script
-echo "[2/4] Installing scan script..."
-cat << 'EOF' > "$SCRIPT_PATH"
+# Create scan script
+cat << 'EOS' > "$SCRIPT_PATH"
 #!/bin/bash
+set -e
 
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+HOSTNAME=$(hostname)
 DATE=$(date +"%F")
 START_TS=$(date +"%Y-%m-%d %H:%M:%S")
-HOSTNAME=$(hostname)
 
 LOGDIR="/var/log/clamav"
-LOGFILE="$LOGDIR/scan-$DATE.log"
+LOGFILE="scan-${DATE}.log"
+LOGPATH="${LOGDIR}/${LOGFILE}"
 
 EXCLUDES=(
   "/proc"
@@ -49,51 +52,47 @@ mkdir -p "$LOGDIR"
   echo "Host      : $HOSTNAME"
   echo "Start Time: $START_TS"
   echo "Mode      : Docker (read-only filesystem)"
+  echo "Log File  : $LOGFILE"
   echo "=================================================="
-} >> "$LOGFILE"
+} >> "$LOGPATH"
 
 EXCLUDE_ARGS=""
-for d in "${EXCLUDES[@]}"; do
-  EXCLUDE_ARGS+=" --exclude-dir=/scan$d"
+for d in "\${EXCLUDES[@]}"; do
+  EXCLUDE_ARGS+=" --exclude-dir=/scan\$d"
 done
 
 docker run --rm \
   -v /:/scan:ro \
-  -v /var/log/clamav:/logs \
+  -v "$LOGDIR":/logs \
   clamav/clamav:stable \
   clamscan -r /scan \
     --infected \
     --verbose \
-    $EXCLUDE_ARGS \
-    --log=/logs/scan-$DATE.log
+    \$EXCLUDE_ARGS \
+    --log="/logs/\$LOGFILE"
 
-END_TS=$(date +"%Y-%m-%d %H:%M:%S")
+END_TS=\$(date +"%Y-%m-%d %H:%M:%S")
 
 {
   echo "=================================================="
   echo "ClamAV Scan END"
-  echo "End Time: $END_TS"
+  echo "End Time: \$END_TS"
   echo "=================================================="
   echo ""
-} >> "$LOGFILE"
-EOF
+} >> "\$LOGPATH"
+EOS
 
 chmod +x "$SCRIPT_PATH"
 
-# 4. Install cron
-echo "[3/4] Installing cron job..."
-cat << EOF > "$CRON_FILE"
+# Install cron
+cat << EOF2 > "$CRON_FILE"
 # Daily ClamAV Docker Scan
 $SCAN_TIME root $SCRIPT_PATH
-EOF
+EOF2
 
 chmod 644 "$CRON_FILE"
 
-echo "[4/4] Setup completed successfully."
-echo
-echo "✔ Script : $SCRIPT_PATH"
-echo "✔ Cron   : $CRON_FILE"
-echo "✔ Logs   : $LOGDIR/scan-YYYY-MM-DD.log"
-echo
-echo "You can test now with:"
-echo "  $SCRIPT_PATH"
+echo "✔ Installed $SCRIPT_PATH"
+echo "✔ Cron configured ($SCAN_TIME)"
+echo "✔ Logs at $LOGDIR"
+EOF
