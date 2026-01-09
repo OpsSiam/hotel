@@ -1,4 +1,3 @@
-cat << 'EOF' > /opt/clam-av/clamav_docker_setup.sh
 #!/bin/bash
 set -e
 
@@ -95,4 +94,3 @@ chmod 644 "$CRON_FILE"
 echo "✔ Installed $SCRIPT_PATH"
 echo "✔ Cron configured ($SCAN_TIME)"
 echo "✔ Logs at $LOGDIR"
-EOF
