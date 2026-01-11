@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "== Install node-exporter (Docker Compose v2, FIXED) =="
+echo "== Install node-exporter (Docker Compose v2) =="
 
 # ---------------- CONFIG ----------------
 MONITOR_IP="10.10.20.3"
@@ -13,26 +13,20 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# ---------------- INSTALL DOCKER ----------------
+# ---------------- CHECK DOCKER ----------------
 if ! command -v docker >/dev/null 2>&1; then
-  echo "[+] Installing Docker CE..."
-  dnf -y install dnf-plugins-core
-  dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-  dnf -y install docker-ce docker-ce-cli containerd.io
-  systemctl enable --now docker
-else
-  echo "[✓] Docker already installed"
+  echo "[X] Docker not installed. Run install-docker/install-docker.sh first."
+  exit 1
 fi
 
-# ---------------- INSTALL DOCKER COMPOSE V2 ----------------
+if ! systemctl is-active docker >/dev/null 2>&1; then
+  echo "[X] Docker is not running. Fix Docker before continue."
+  exit 1
+fi
+
 if ! docker compose version >/dev/null 2>&1; then
-  echo "[+] Installing Docker Compose v2 plugin..."
-  mkdir -p /usr/local/lib/docker/cli-plugins
-  curl -SL https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64 \
-    -o /usr/local/lib/docker/cli-plugins/docker-compose
-  chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-else
-  echo "[✓] Docker Compose v2 already installed"
+  echo "[X] Docker Compose v2 not found. Run install-docker/install-docker.sh first."
+  exit 1
 fi
 
 # ---------------- CLEAN OLD CONTAINER ----------------

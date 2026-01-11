@@ -13,7 +13,7 @@ fi
 
 # ---------------- CHECK DOCKER ----------------
 if ! command -v docker >/dev/null 2>&1; then
-  echo "[X] Docker not installed. Install Docker manually first."
+  echo "[X] Docker not installed. Run install-docker/install-docker.sh first."
   exit 1
 fi
 
@@ -22,13 +22,9 @@ if ! systemctl is-active docker >/dev/null 2>&1; then
   exit 1
 fi
 
-# ---------------- INSTALL COMPOSE V2 ----------------
 if ! docker compose version >/dev/null 2>&1; then
-  echo "[+] Installing Docker Compose v2 plugin..."
-  mkdir -p /usr/local/lib/docker/cli-plugins
-  curl -SL https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64 \
-    -o /usr/local/lib/docker/cli-plugins/docker-compose
-  chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+  echo "[X] Docker Compose v2 not found. Run install-docker/install-docker.sh first."
+  exit 1
 fi
 
 # ---------------- CLEAN OLD ----------------

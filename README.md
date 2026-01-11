@@ -1,51 +1,66 @@
-# Opssiam 1hotel
+# Server Ops Toolkit
 
-ชุดสคริปต์ติดตั้ง Node Exporter และตั้งเวลา ClamAV scan ผ่าน Docker
+Scripts to install Node Exporter and schedule ClamAV scans via Docker for general use.
 
-## 1) ติดตั้ง Node Exporter (Docker Compose)
+## 0) Install Docker (optional)
 
-สคริปต์อยู่ที่ `node-exporter/install-node-exporter.sh`
+Script location: `install-docker/install-docker.sh`
 
-### เงื่อนไข
-- ต้องรันด้วยสิทธิ์ root
-- ระบบที่ใช้ `dnf` (เช่น CentOS/Rocky/Alma)
+### Requirements
+- Run as root
+- `dnf`-based systems (e.g., CentOS/Rocky/Alma)
 
-### ขั้นตอน (วางไฟล์ไว้ที่ `/usr/local/bin`)
+### Steps (place the file in `/usr/local/bin`)
+```bash
+nano /usr/local/bin/install-docker.sh
+chmod +x /usr/local/bin/install-docker.sh
+sudo /usr/local/bin/install-docker.sh
+```
+
+## 1) Install Node Exporter (Docker Compose)
+
+Script location: `install-node-exporter/install-node-exporter.sh`
+
+### Requirements
+- Run as root
+- Docker and Docker Compose v2 installed
+
+### Steps (place the file in `/usr/local/bin`)
 ```bash
 nano /usr/local/bin/install-node-exporter.sh
 chmod +x /usr/local/bin/install-node-exporter.sh
 sudo /usr/local/bin/install-node-exporter.sh
 ```
 
-### ปรับค่า (ถ้าต้องการ)
-ในสคริปต์กำหนดตัวแปร:
-- `MONITOR_IP="10.10.20.3"` ใช้สำหรับ firewall ให้เปิดพอร์ต 9100 เฉพาะ IP นี้
+### Optional config
+Variables in the script:
+- `MONITOR_IP="10.10.20.3"` used to allow port 9100 only from this IP via firewall
 - `INSTALL_DIR="/opt/node-exporter"`
 
-หลังติดตั้ง Node Exporter จะฟังที่ `:9100`
+After installation, Node Exporter listens on `:9100`.
 
-## 2) ติดตั้ง ClamAV scan ผ่าน Docker (cron)
+## 2) Install ClamAV scan via Docker (cron)
 
-สคริปต์อยู่ที่ `clam-av/clamav_docker_setup.sh`
+Script location: `clam-av/clamav_docker_setup.sh`
 
-### เงื่อนไข
-- ต้องติดตั้ง Docker ไว้ก่อน
-- ต้องรันด้วยสิทธิ์ root
+### Requirements
+- Docker installed
+- Run as root
 
-### ขั้นตอน (วางไฟล์ไว้ที่ `/usr/local/bin`)
+### Steps (place the file in `/usr/local/bin`)
 ```bash
 nano /usr/local/bin/clamav_docker_setup.sh
 chmod +x /usr/local/bin/clamav_docker_setup.sh
 sudo /usr/local/bin/clamav_docker_setup.sh
 ```
 
-### ค่าเริ่มต้น
-- เวลา scan: `30 3 * * *` (ทุกวัน 03:30)
-- สคริปต์: `/usr/local/bin/clamav_docker_scan.sh`
-- cron: `/etc/cron.d/clamav_scan`
-- log: `/var/log/clamav/scan-YYYY-MM-DD.log`
+### Defaults
+- Scan time: `30 3 * * *` (daily at 03:30)
+- Script: `/usr/local/bin/clamav_docker_scan.sh`
+- Cron file: `/etc/cron.d/clamav_scan`
+- Log: `/var/log/clamav/scan-YYYY-MM-DD.log`
 
-### ทดสอบ manual
+### Manual test
 ```bash
 sudo /usr/local/bin/clamav_docker_scan.sh
 ```
