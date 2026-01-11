@@ -1,18 +1,18 @@
 #!/bin/bash
 set -e
 
-echo "[02] SSH hardening"
+echo "=== SSH Hardening ==="
 
-SSHD_CONF="/etc/ssh/sshd_config.d/99-hardening.conf"
-
-cat <<EOF >$SSHD_CONF
+cat <<EOF > /etc/ssh/sshd_config.d/99-hardening.conf
 PermitRootLogin no
 PasswordAuthentication no
 PubkeyAuthentication yes
-UsePAM yes
-MaxAuthTries 3
+MaxAuthTries 4
+LoginGraceTime 30
 ClientAliveInterval 300
-ClientAliveCountMax 2
+ClientAliveCountMax 0
+AllowTcpForwarding no
+X11Forwarding no
 EOF
 
 sshd -t
