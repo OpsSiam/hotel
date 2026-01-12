@@ -8,8 +8,12 @@ cat <<EOF > /etc/modprobe.d/cis.conf
 install cramfs /bin/true
 install squashfs /bin/true
 install udf /bin/true
-install vfat /bin/true
 EOF
+
+# EFI systems need vfat to mount /boot/efi; avoid breaking boot.
+if [ ! -d /sys/firmware/efi ] && ! mountpoint -q /boot/efi; then
+  echo "install vfat /bin/true" >> /etc/modprobe.d/cis.conf
+fi
 
 # Kernel hardening
 cat <<EOF > /etc/sysctl.d/99-cis.conf
@@ -23,8 +27,9 @@ EOF
 
 sysctl --system
 
-# Permissions
-chmod 600 /etc/passwd
+# Permissions (CIS-aligned defaults)
+chmod 644 /etc/passwd
+chmod 644 /etc/group
 chmod 600 /etc/shadow
 chmod 600 /etc/gshadow
 
