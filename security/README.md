@@ -4,10 +4,15 @@ Basic CIS-aligned hardening tasks for Linux hosts.
 
 ## Files
 - `01_cis_base_hardening.sh` sysctl tuning and permissions for core system files
+  - Safe baseline; low risk of SSH lockout.
 - `02_auditd_rules.sh` auditd rules for identity and exec tracking
+  - Safe baseline; low risk of SSH lockout.
 - `03_patch_management.sh` enable `dnf-automatic` for security updates
+  - Safe baseline; low risk of SSH lockout.
 - `04_ssh_hardening.sh` SSH configuration hardening
+  - High risk: may lock out SSH/root if no working key-based wheel user exists.
 - `05_user_policy.sh` password aging and sudo policy
+  - High risk: can block access if sudo/wheel user not created and tested first.
 
 ## Requirements
 - Run as root
