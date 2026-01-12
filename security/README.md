@@ -14,6 +14,11 @@ Basic CIS-aligned hardening tasks for Linux hosts.
 - `dnf`-based systems
 - These scripts modify system configuration files
 
+## Warning (possible lockout)
+Running SSH hardening or user policy changes can lock you out if you do it before creating a non-root admin.
+Create a wheel/sudo user and confirm SSH key login works before running `04_ssh_hardening.sh` or `05_user_policy.sh`.
+If you disable password or root login without a working key-based admin account, you may lose SSH access.
+
 ## Suggested order
 ```bash
 sudo ./01_cis_base_hardening.sh
@@ -22,4 +27,3 @@ sudo ./03_patch_management.sh
 sudo ./04_ssh_hardening.sh
 sudo ./05_user_policy.sh
 ```
-
