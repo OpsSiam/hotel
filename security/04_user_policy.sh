@@ -90,16 +90,24 @@ echo "=== Session Timeout ==="
 
 PROFILE="/etc/profile.d/session_timeout.sh"
 
-cat <<EOF > $PROFILE
-TMOUT=900
-readonly TMOUT
-export TMOUT
+# remove any existing TMOUT configuration
+sed -i '/TMOUT/d' /etc/profile /etc/bashrc /etc/profile.d/* 2>/dev/null || true
+
+cat <<'EOF' > $PROFILE
+# Auto logout after 15 minutes (PCI DSS)
+
+case $- in
+*i*)
+    TMOUT=900
+    export TMOUT
+    readonly TMOUT
+    ;;
+esac
 EOF
 
-chmod +x $PROFILE
+chmod 644 $PROFILE
 
 echo "✔ Session timeout set (15 minutes)"
-
 
 echo "=== Security Banner ==="
 
