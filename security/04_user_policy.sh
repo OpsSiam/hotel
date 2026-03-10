@@ -87,7 +87,7 @@ echo "✔ Account lockout configured"
 
 
 echo "=== Session Timeout ==="
-
+rm -rf /etc/profile.d/timeout.sh
 PROFILE="/etc/profile.d/session_timeout.sh"
 
 # remove any existing TMOUT configuration
